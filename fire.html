@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-database.js"></script>
+</head>
+
+<style>
+  pre {
+    cursor: pointer;
+  }
+  pre:hover{
+    background-color: #eee;
+  }
+</style>
+
+<body>
+  <label for="">
+    名稱：
+  </label>
+  <input id="title" type="text" placeholder="">
+  <label for="">
+    年紀：
+  </label>
+  <input id="age" type="text" placeholder="">
+  <label for="">
+    身高：
+  </label>
+  <input id="height" type="text" placeholder="">
+  <label for="">
+    體重：
+  </label>
+  <input id="weight" type="text" placeholder="">
+  <button id="sent">送出</button>
+  <button id="reset">重置</button>
+  <br>
+  <br>
+  <select name="" id="condition">
+    <option value="age">
+      年紀
+    </option>
+    <option value="weight">
+      體重
+    </option>
+    <option value="height">
+      身高
+    </option>
+  </select>
+  <select name="" id="sort">
+    <option value="ascend">
+      由低到高
+    </option>
+    <option value="descend">
+      由高到低
+    </option>
+  </select>
+  <div id="content"></div>
+
+  <script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+      apiKey: "AIzaSyCDNvWM90xM7-a3auGh8P7Lu66YhSTGLvw",
+      authDomain: "project-a2712.firebaseapp.com",
+      databaseURL: "https://project-a2712.firebaseio.com",
+      projectId: "project-a2712",
+      storageBucket: "project-a2712.appspot.com",
+      messagingSenderId: "562193256236",
+      appId: "1:562193256236:web:d6592a40c0eb7ac0"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    var data = {
+      "father":{
+        "title": "father",
+        "age": 44,
+        "weight": 88,
+        "height": 178
+      },
+      "mom":{
+        "title": "mom",
+        "age": 42,
+        "weight": 66,
+        "height": 166
+      },
+      "son":{
+        "title": "son",
+        "age": 13,
+        "weight": 40,
+        "height": 133
+      },
+      "daughter":{
+        "title": "daughter",
+        "age": 8,
+        "weight": 35,
+        "height": 110
+      }
+    }
+    var familyRef = firebase.database().ref('family')
+    // people.orderByChild('height').startAt(170).limitToFirst(2).once('value', (snapshot) => {
+    //   snapshot.forEach((item) => {
+    //     console.log(item.val())
+    //   })
+    // })
+
+
+    var title = document.getElementById('title')
+    var age = document.getElementById('age')
+    var height = document.getElementById('height')
+    var weight = document.getElementById('weight')
+    var sentBtn = document.getElementById('sent')
+    var resetBtn = document.getElementById('reset')
+    var list = document.getElementById('list')
+    var condition = document.getElementById('condition')
+    var sort = document.getElementById('sort')
+    var content = document.getElementById('content')
+
+    getData()
+
+    // 新增
+    sentBtn.addEventListener('click', function () {
+      if (!title.value || !age.value || !height.value || !weight.value) {
+        alert('有一個或多個欄位為空')
+        return
+      }
+      familyRef.push({
+        title: title.value,
+        age: parseInt(age.value),
+        height: parseInt(height.value),
+        weight: parseInt(weight.value)
+      })
+      title.value = ''
+      age.value = ''
+      height.value = ''
+      weight.value = ''
+    })
+
+    reset.addEventListener('click', function () {
+      familyRef.set(data)
+    })
+
+    condition.addEventListener('change', getData)
+    sort.addEventListener('change', getData)
+
+    function getData() {
+      // 顯示資料
+      familyRef.orderByChild(condition.value).on('value', (snapshot) => {
+        var data = snapshot.val()
+        var tempArray = []
+        var pre = ''
+        var i = 0
+
+        snapshot.forEach((item) => {
+          tempArray.push(item.val())
+          tempArray[i].key = item.key
+          i++
+        })
+
+        if (sort.value === 'descend') {
+          tempArray = tempArray.reverse()
+        }
+
+        tempArray.forEach((item) => {
+          pre += `<pre data-key="${item.key}">${JSON.stringify(item, null, 2)}</pre>`
+        })
+
+        content.innerHTML = pre
+      })
+    }
+
+    // 刪除
+    content.addEventListener('click',function (e) {
+      var key
+      if (e.target.nodeName === 'PRE') {
+        key = e.target.dataset.key
+        familyRef.child(key).remove()
+      }
+    })
+  </script>
+</body>
+</html>
